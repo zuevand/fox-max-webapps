@@ -128,12 +128,8 @@
 
     function openMenu() {
       if (window.WebApp) {
-        // Открываем бота с командой start — замени ИМЯ_БОТА на реальное
-        window.WebApp.openMaxLink('https://max.ru/ИМЯ_БОТА?startapp=menu');
+        window.WebApp.openMaxLink('https://max.ru/foxford_bot?startapp=menu');
         window.WebApp.close();
-      } else {
-        // Для локального теста в браузере
-        alert('Открываем меню бота...');
       }
     }
   </script>
