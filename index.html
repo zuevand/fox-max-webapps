@@ -47,7 +47,6 @@
       overflow-x: hidden;
     }
 
-    /* Фоновый градиент */
     body::before {
       content: '';
       position: fixed;
@@ -72,8 +71,10 @@
     .center {
       flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 16px;
     }
 
     .btn-primary {
@@ -105,6 +106,55 @@
       box-shadow: 0 2px 12px var(--accent-glow);
     }
 
+    /* Тестовый экран */
+    .debug-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      animation: fadeIn 0.3s ease both;
+    }
+
+    .debug-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--accent-light);
+    }
+
+    .debug-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .debug-row:last-child {
+      border-bottom: none;
+    }
+
+    .debug-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .debug-value {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 500;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .debug-value.highlight {
+      color: var(--success);
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -113,17 +163,23 @@
 </head>
 <body>
   <div class="content">
-    <div class="center">
-      <button class="btn-primary" onclick="openMenu()">
-        Открыть меню бота
-      </button>
+    <div class="center" id="app">
+      <!-- Рендерится через JS -->
     </div>
   </div>
 
   <script>
-    // Говорим MAX что апп загрузился
     if (window.WebApp) {
       window.WebApp.ready();
+    }
+
+    // Читаем startapp параметр двумя способами
+    function getStartParam() {
+      // Способ 1: через WebApp SDK
+      const sdkParam = window.WebApp?.initDataUnsafe?.start_param;
+      if (sdkParam) return sdkParam;
+      // Способ 2: через GET-параметр (фолбек)
+      return new URLSearchParams(window.location.search).get('WebAppStartParam') || '';
     }
 
     function openMenu() {
@@ -132,6 +188,62 @@
         window.WebApp.close();
       }
     }
+
+    function render() {
+      const param = getStartParam();
+      const app = document.getElementById('app');
+
+      if (param === 'test') {
+        // Тестовый экран — показываем все данные окружения
+        const initData = window.WebApp?.initData || '—';
+        const initDataUnsafe = window.WebApp?.initDataUnsafe || {};
+        const platform = window.WebApp?.platform || '—';
+        const version = window.WebApp?.version || '—';
+
+        app.innerHTML = `
+          <div class="debug-card">
+            <h2>🧪 Debug</h2>
+            <div class="debug-row">
+              <span class="debug-label">start_param</span>
+              <span class="debug-value highlight">${param}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">platform</span>
+              <span class="debug-value">${platform}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">version</span>
+              <span class="debug-value">${version}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">user.id</span>
+              <span class="debug-value">${initDataUnsafe?.user?.id || '—'}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">user.first_name</span>
+              <span class="debug-value">${initDataUnsafe?.user?.first_name || '—'}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">initData</span>
+              <span class="debug-value">${initData.slice(0, 60) || '—'}${initData.length > 60 ? '…' : ''}</span>
+            </div>
+            <div class="debug-row">
+              <span class="debug-label">GET param</span>
+              <span class="debug-value">${new URLSearchParams(window.location.search).get('WebAppStartParam') || '—'}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        // Дефолтный экран (как было)
+        app.innerHTML = `
+          <button class="btn-primary" onclick="openMenu()">
+            Открыть меню бота
+          </button>
+        `;
+      }
+    }
+
+    render();
   </script>
 </body>
 </html>
